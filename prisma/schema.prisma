@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id        Int             @id @default(autoincrement())
+  email     String          @unique
+  name      String
+  password  String
+  profile   UserProfile?
+  workouts  UserWorkoutLog[]
+  joshLogs  JoshLog[]
+  badges    UserBadge[]
+}
+
+model UserProfile {
+  id       Int     @id @default(autoincrement())
+  user     User    @relation(fields: [userId], references: [id])
+  userId   Int     @unique
+  height   Float
+  weight   Float
+  age      Int
+  goal     String  // 'fat', 'muscle', 'thin', 'endurance'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model JoshLog {
+  id       Int      @id @default(autoincrement())
+  user     User     @relation(fields: [userId], references: [id])
+  userId   Int
+  level    Int      // 1 low, 2 medium, 3 high
+  date     DateTime @default(now())
+}
+
+model WorkoutTemplate {
+  id            Int               @id @default(autoincrement())
+  name          String
+  type          String
+  defaultSets   Int
+  defaultReps   Int
+  goal          String
+  userWorkouts  UserWorkoutLog[]  // back-relation
+}
+
+model UserWorkoutLog {
+  id            Int             @id @default(autoincrement())
+  user          User            @relation(fields: [userId], references: [id])
+  userId        Int
+  workout       WorkoutTemplate @relation(fields: [workoutId], references: [id])
+  workoutId     Int
+  completedReps Int
+  completedSets Int
+  feedback      String
+  date          DateTime @default(now())
+}
+
+model MealTemplate {
+  id       Int     @id @default(autoincrement())
+  name     String
+  calories Int
+  protein  Int
+  carbs    Int
+  fat      Int
+  tags     String
+}
+
+model Badge {
+  id          Int         @id @default(autoincrement())
+  name        String
+  criteria    String
+  userBadges  UserBadge[] // back-relation
+}
+
+model UserBadge {
+  id       Int    @id @default(autoincrement())
+  user     User   @relation(fields: [userId], references: [id])
+  userId   Int
+  badge    Badge  @relation(fields: [badgeId], references: [id])
+  badgeId  Int
+  date     DateTime @default(now())
+}
